@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"log"
 	"runtime"
 
 	"okinawa/core"
+	"okinawa/log"
 )
 
 const (
@@ -13,9 +13,10 @@ const (
 )
 
 func Initialize() {
-	log.Println("Let's begin!")
+	log.Log("engine::Initialize", "Let's go!")
 
 	runtime.LockOSThread()
 
+	log.Initialize()
 	core.Initialize(windowWidth, windowHeight)
 }
