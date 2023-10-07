@@ -1,0 +1,10 @@
+*.log
+*.log.*
+
+.vscode
+.idea
+*.iml
+*.sublime-workspace
+
+# MacOS
+.DS_Store
