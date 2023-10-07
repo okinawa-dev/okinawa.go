@@ -1,6 +1,8 @@
+# logs
 *.log
 *.log.*
 
+# editors
 .vscode
 .idea
 *.iml
@@ -8,3 +10,6 @@
 
 # MacOS
 .DS_Store
+
+# binaries
+okinawa
