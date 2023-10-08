@@ -9,11 +9,15 @@ import (
 
 	"okinawa/item"
 	"okinawa/log"
+	"okinawa/math"
 )
 
 var (
 	window  *glfw.Window
 	program uint32
+
+	// TODO
+	i item.Item
 
 	vertexShaderSource = `
     #version 410
@@ -41,9 +45,12 @@ func Initialize(windowWidth int, windowHeight int) {
 	program = initOpenGL()
 
 	// after opengl is initialized
-	item.Initialize()
+	i.Initialize()
+	i.SetPosition(math.Point3{X: 0, Y: 0, Z: 0})
 
-	for !window.ShouldClose() {
+	window.SetInputMode(glfw.StickyKeysMode, glfw.True)
+
+	for window.GetKey(glfw.KeyEscape) != glfw.Press && !window.ShouldClose() {
 		Draw(window, program)
 	}
 }
@@ -121,13 +128,30 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
+// MakeVertexArrayObject initializes and returns a vertex array from the points provided
+func MakeVertexArrayObject(points []float32) uint32 {
+	var vbo uint32
+	gl.GenBuffers(1, &vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
+
+	var vao uint32
+	gl.GenVertexArrays(1, &vao)
+	gl.BindVertexArray(vao)
+	gl.EnableVertexAttribArray(0)
+	// gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
+
+	return vao
+}
+
 // Draw renders the window
 func Draw(window *glfw.Window, program uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
-	item.Draw(window, program)
+	i.Draw(window, program)
 
-	glfw.PollEvents()
 	window.SwapBuffers()
+	glfw.PollEvents()
 }
