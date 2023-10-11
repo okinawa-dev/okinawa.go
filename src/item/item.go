@@ -1,19 +1,31 @@
 package item
 
 import (
+	// "fmt"
+
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 
+	"okinawa/log"
 	"okinawa/math"
 )
 
 // Item defines a drawable object
 type Item struct {
-	spriteName string
-	visible    bool
+	name    string
+	visible bool
 
-	position math.Point3
+	position math.Point2
 	size     math.Point2
+	rotation math.Rotation
+
+	// item hierarchy
+	parent        *Item
+	attachedItems []*Item
+
+	// openGL information
+	vertexArrayObject  uint32
+	vertexBufferObject uint32
 }
 
 var (
@@ -27,12 +39,16 @@ var (
 
 // Initialize prepares an item
 func (i Item) Initialize() {
-	i.spriteName = "Item"
+	i.name = "Item"
 	i.visible = true
-	i.position = math.Point3{X: 0, Y: 0, Z: 0}
+	i.position = math.Point2{X: 0, Y: 0}
 	i.size = math.Point2{X: 0.5, Y: 0.5}
 
-	makeVertexArrayObject(frame)
+	i.parent = nil
+	i.attachedItems = []*Item{}
+
+	log.Info("item::Initialize", i.name)
+	i.initializeVertexArrayObject(frame)
 }
 
 // GetVisible returns the value of the visible property
@@ -46,13 +62,35 @@ func (i Item) SetVisible(value bool) {
 }
 
 // GetPosition returns the position of the item
-func (i Item) GetPosition() math.Point3 {
-	return i.position
+func (i Item) GetPosition() math.Point2 {
+	// return i.position
+	var (
+		result              math.Point2
+		parentPosition      math.Point2
+		transformedPosition math.Point2
+	)
+
+	if i.GetParent() != nil {
+		parentPosition = i.GetParent().GetPosition()
+		transformedPosition = i.GetParent().GetRotation().TransformPosition(i.GetPosition())
+
+		result.X = parentPosition.X + transformedPosition.X
+		result.Y = parentPosition.Y + transformedPosition.Y
+	} else {
+		result = i.position
+	}
+
+	return result
 }
 
 // SetPosition sets the position of the item
-func (i Item) SetPosition(value math.Point3) {
+func (i Item) SetPosition(value math.Point2) {
 	i.position = value
+}
+
+// GetRotation returns the rotation of the item
+func (i Item) GetRotation() math.Rotation {
+	return i.rotation
 }
 
 // GetSize returns the position of the item
@@ -65,26 +103,43 @@ func (i Item) SetSize(value math.Point2) {
 	i.size = value
 }
 
+// GetParent returns the parent of the item
+func (i Item) GetParent() *Item {
+	return i.parent
+}
+
+// SetParent sets the parent of the item
+func (i Item) SetParent(value *Item) {
+	i.parent = value
+}
+
 // Draw renders the item
 func (i Item) Draw(window *glfw.Window, program uint32) {
+
+	// TODO check
+	// update the pipeline state with the buffer we intend to use
+	gl.BindBuffer(gl.ARRAY_BUFFER, i.vertexBufferObject)
+
 	// use gl.TRIANGLES to draw triangles using vertices in groups of three
 	// use gl.TRIANGLE_FAN to draw the first 3, then 2,3,4, then 3,4,5, etc.
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(frame)/3))
 }
 
-// makeVertexArrayObject initializes and returns a vertex array from the points provided
-func makeVertexArrayObject(points []float32) uint32 {
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+// initializeVertexArrayObject initializes and returns a vertex array from the points provided
+func (i Item) initializeVertexArrayObject(points []float32) {
+	// generate 1 buffer object
+	gl.GenBuffers(1, &i.vertexBufferObject)
+	// vbo will contain an array of vertices
+	gl.BindBuffer(gl.ARRAY_BUFFER, i.vertexBufferObject)
+	// fill the buffer with data
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
 
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	gl.EnableVertexAttribArray(0)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
+	log.Info("item::initializeVertexArrayObject" /* fmt.Sprint(i.name) */, i.GetPosition().String())
 
-	return vao
+	gl.GenVertexArrays(1, &i.vertexArrayObject)
+	gl.BindVertexArray(i.vertexArrayObject)
+	// vertex position is treated as vertex attribute index 0 in the fixed function pipeline
+	gl.EnableVertexAttribArray(0)
+	// tell the pipeline how to interpret the data inside the buffer
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 }

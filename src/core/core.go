@@ -46,7 +46,8 @@ func Initialize(windowWidth int, windowHeight int) {
 
 	// after opengl is initialized
 	i.Initialize()
-	i.SetPosition(math.Point3{X: 0, Y: 0, Z: 0})
+	i.SetPosition(math.Point2{X: 0, Y: 0})
+	i.SetSize(math.Point2{X: 20, Y: 20})
 
 	window.SetInputMode(glfw.StickyKeysMode, glfw.True)
 
@@ -62,11 +63,12 @@ func initGlfw(windowWidth int, windowHeight int) *glfw.Window {
 		panic(err)
 	}
 
+	glfw.WindowHint(glfw.Samples, 4) // 4x antialiasing
 	glfw.WindowHint(glfw.Resizable, glfw.False)
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
+	glfw.WindowHint(glfw.ContextVersionMajor, 4) // We want OpenGL 4.1
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile) // We don't want the old OpenGL
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // To make MacOS happy; should not be needed
 
 	window, err := glfw.CreateWindow(windowWidth, windowHeight, "okinawa.go", nil, nil)
 	if err != nil {
@@ -86,7 +88,7 @@ func initOpenGL() uint32 {
 	}
 
 	version := gl.GoStr(gl.GetString(gl.VERSION))
-	log.Log("core::initOpenGL", "OpenGL version"+version)
+	log.Info("core::initOpenGL", "OpenGL version"+version)
 
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
@@ -128,28 +130,12 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
-// MakeVertexArrayObject initializes and returns a vertex array from the points provided
-func MakeVertexArrayObject(points []float32) uint32 {
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
-
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	gl.EnableVertexAttribArray(0)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
-
-	return vao
-}
-
 // Draw renders the window
 func Draw(window *glfw.Window, program uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
+	// TODO draw the full scene
 	i.Draw(window, program)
 
 	window.SwapBuffers()

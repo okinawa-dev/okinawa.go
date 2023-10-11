@@ -12,8 +12,9 @@ const (
 	windowHeight = 480
 )
 
+// Initialize prepares the engine, and calls Initialize in every engine component
 func Initialize() {
-	log.Log("engine::Initialize", "Let's go!")
+	log.Info("engine::Initialize", "Let's go!")
 
 	runtime.LockOSThread()
 
