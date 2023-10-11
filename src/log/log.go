@@ -27,6 +27,13 @@ func toString(message any) string {
 }
 
 // Info prints a log message to the console
-func Info(location string, message any) {
-	log.Println("[" + location + "] " + toString(message))
+func Info(location string, messages ...any) {
+
+	result := "[" + location + "] "
+
+	for _, msg := range messages {
+		result += toString(msg) + " "
+	}
+
+	log.Println(result)
 }
