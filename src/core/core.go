@@ -10,6 +10,7 @@ import (
 	"okinawa/item"
 	"okinawa/log"
 	"okinawa/math"
+	"okinawa/utils"
 )
 
 var (
@@ -19,22 +20,6 @@ var (
 	// TODO
 	i1 item.Item
 	i2 item.Item
-
-	vertexShaderSource = `
-    #version 410
-    in vec3 vp;
-    void main() {
-        gl_Position = vec4(vp, 1.0);
-    }
-` + "\x00"
-
-	fragmentShaderSource = `
-    #version 410
-    out vec4 frag_colour;
-    void main() {
-        frag_colour = vec4(1, 1, 1, 1);
-    }
-` + "\x00"
 )
 
 // Initialize prepares the core component of the engine (handles OpenGL)
@@ -99,10 +84,27 @@ func initOpenGL() uint32 {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	log.Info("core::initOpenGL", "OpenGL version"+version)
 
+	// read basic vertex shader from file
+	vertexShaderSource, err := utils.GetFileContents("shaders/simplevertexshader.glsl")
+	if err != nil {
+		panic(err)
+	}
+
+	log.Info("core::initOpenGL", "vertex shader:\n"+vertexShaderSource)
+
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
 		panic(err)
 	}
+
+	// read basic fragment shader from file
+	fragmentShaderSource, err := utils.GetFileContents("shaders/simplefragmentshader.glsl")
+	if err != nil {
+		panic(err)
+	}
+
+	log.Info("core::initOpenGL", "fragment shader:\n"+fragmentShaderSource)
+
 	fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 	if err != nil {
 		panic(err)

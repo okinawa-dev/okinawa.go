@@ -52,7 +52,7 @@ func (i *Item) Initialize() {
 	i.parent = nil
 	i.attachedItems = []*Item{}
 
-	log.Info("item::Initialize", i.Name, *i.rotation)
+	log.Info("item::Initialize", i.Name, i.rotation)
 	i.initializeVertexArrayObject(frame)
 }
 
