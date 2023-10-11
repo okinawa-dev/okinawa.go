@@ -17,7 +17,8 @@ var (
 	program uint32
 
 	// TODO
-	i item.Item
+	i1 item.Item
+	i2 item.Item
 
 	vertexShaderSource = `
     #version 410
@@ -45,9 +46,17 @@ func Initialize(windowWidth int, windowHeight int) {
 	program = initOpenGL()
 
 	// after opengl is initialized
-	i.Initialize()
-	i.SetPosition(math.Point2{X: 0, Y: 0})
-	i.SetSize(math.Point2{X: 20, Y: 20})
+	i1 = item.Item{Name: "Item1"}
+	i1.Initialize()
+	i1.SetPosition(&math.Point2{X: 0, Y: 0})
+	i1.SetSize(&math.Point2{X: 20, Y: 20})
+	i1.SetRotation(10)
+
+	i2 = item.Item{Name: "Item2"}
+	i2.Initialize()
+	i2.SetPosition(&math.Point2{X: 10, Y: 10})
+	i2.SetSize(&math.Point2{X: 20, Y: 20})
+	i2.SetRotation(10)
 
 	window.SetInputMode(glfw.StickyKeysMode, glfw.True)
 
@@ -136,7 +145,8 @@ func Draw(window *glfw.Window, program uint32) {
 	gl.UseProgram(program)
 
 	// TODO draw the full scene
-	i.Draw(window, program)
+	i1.Draw(window, program)
+	i2.Draw(window, program)
 
 	window.SwapBuffers()
 	glfw.PollEvents()
